@@ -29,6 +29,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/coreos/mantle/harness/reporters"
 )
 
 // H is a type passed to Test functions to manage test state and support formatted test logs.
@@ -67,6 +69,8 @@ type H struct {
 	sub      []*H      // Queue of subtests to be run in parallel.
 
 	isParallel bool
+
+	reporters reporters.Reporters
 }
 
 func (c *H) parentContext() context.Context {
@@ -90,12 +94,21 @@ func (c *H) flushToParent(format string, args ...interface{}) {
 
 	fmt.Fprintf(p.w, format, args...)
 
+	var status string
+	if c.Failed() {
+		status = "FAIL"
+	} else if c.Skipped() {
+		status = "SKIP"
+	} else {
+		status = "PASS"
+	}
+
 	// TODO: include test numbers in TAP output.
 	if p.tap != nil {
 		name := strings.Replace(c.name, "#", "", -1)
-		if c.Failed() {
+		if status == "FAIL" {
 			fmt.Fprintf(p.tap, "not ok - %s\n", name)
-		} else if c.Skipped() {
+		} else if status == "SKIP" {
 			fmt.Fprintf(p.tap, "ok - %s # SKIP\n", name)
 		} else {
 			fmt.Fprintf(p.tap, "ok - %s\n", name)
@@ -104,7 +117,14 @@ func (c *H) flushToParent(format string, args ...interface{}) {
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	io.Copy(p.w, &c.output)
+	b := c.output.Bytes()
+	io.Copy(p.w, bytes.NewBuffer(b))
+}
+
+func (c *H) publishToReporters(name, status string) {
+	if !c.hasSub {
+		c.reporters.ReportTest(name, status, c.duration, c.output.Bytes())
+	}
 }
 
 type indenter struct {
@@ -435,6 +455,7 @@ func (t *H) Run(name string, f func(t *H)) bool {
 		suite:   t.suite,
 		parent:  t,
 		level:   t.level + 1,
+		reporters: t.reporters,
 	}
 	t.w = indenter{t}
 	// Indent logs 8 spaces to distinguish them from sub-test headers.
@@ -464,15 +485,21 @@ func (t *H) report() {
 	}
 	dstr := fmtDuration(t.duration)
 	format := "--- %s: %s (%s)\n"
+
+	var status string
 	if t.Failed() {
-		t.flushToParent(format, "FAIL", t.name, dstr)
+		status = "FAIL"
+		t.flushToParent(format, status, t.name, dstr)
 	} else if t.suite.opts.Verbose {
 		if t.Skipped() {
-			t.flushToParent(format, "SKIP", t.name, dstr)
+			status = "SKIP"
 		} else {
-			t.flushToParent(format, "PASS", t.name, dstr)
+			status = "PASS"
 		}
+		t.flushToParent(format, status, t.name, dstr)
 	}
+
+	t.publishToReporters(t.name, status)
 }
 
 // CleanOutputDir creates/empties an output directory and returns the cleaned path.

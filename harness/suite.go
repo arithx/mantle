@@ -29,6 +29,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/coreos/mantle/harness/reporters"
 )
 
 const (
@@ -140,6 +142,8 @@ type Suite struct {
 
 	// waiting is the number tests waiting to be run in parallel.
 	waiting int
+
+	reports reporters.Reporters
 }
 
 func (c *Suite) waitParallel() {
@@ -178,6 +182,10 @@ func NewSuite(opts Options, tests Tests) *Suite {
 	}
 }
 
+func (s *Suite) AddReporter(r reporters.Reporter) {
+	s.reports = append(s.reports, r)
+}
+
 // Run runs the tests. Returns SuiteFailed for any test failure.
 func (s *Suite) Run() (err error) {
 	flushProfile := func(name string, f *os.File) {
@@ -202,6 +210,13 @@ func (s *Suite) Run() (err error) {
 	if _, err := fmt.Fprintf(tap, "1..%d\n", len(s.tests)); err != nil {
 		return err
 	}
+
+	err = s.reports.OpenFile(s.outputPath)
+	if err != nil {
+		return err
+	}
+	defer s.reports.Cleanup()
+	defer s.reports.Output()
 
 	if s.opts.MemProfile {
 		runtime.MemProfileRate = s.opts.MemProfileRate
@@ -266,6 +281,7 @@ func (s *Suite) runTests(out, tap io.Writer) error {
 		w:       out,
 		tap:     tap,
 		suite:   s,
+		reporters: s.reports,
 	}
 	tRunner(t, func(t *H) {
 		for name, test := range s.tests {
@@ -280,8 +296,12 @@ func (s *Suite) runTests(out, tap io.Writer) error {
 		return SuiteEmpty
 	}
 	if t.Failed() {
+		s.reports.SetResult("FAIL")
 		return SuiteFailed
 	}
+
+	s.reports.SetResult("PASS")
+
 	return nil
 }
 
