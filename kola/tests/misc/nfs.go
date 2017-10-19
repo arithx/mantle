@@ -19,7 +19,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/coreos/coreos-cloudinit/config"
+	"github.com/vincent-petithory/dataurl"
 
 	"github.com/coreos/mantle/kola/cluster"
 	"github.com/coreos/mantle/kola/register"
@@ -28,62 +28,60 @@ import (
 )
 
 var (
-	nfsserverconf = config.CloudConfig{
-		CoreOS: config.CoreOS{
-			Units: []config.Unit{
-				config.Unit{
-					Name:    "rpc-statd.service",
-					Command: "start",
-				},
-				config.Unit{
-					Name:    "rpc-mountd.service",
-					Command: "start",
-				},
-				config.Unit{
-					Name:    "nfsd.service",
-					Command: "start",
-				},
-			},
+	nfsserverconf = conf.Ignition(fmt.Sprintf(`{
+		"ignition": {
+			"version": "2.1.0"
 		},
-		WriteFiles: []config.File{
-			config.File{
-				Content: "/tmp	*(ro,insecure,all_squash,no_subtree_check,fsid=0)",
-				Path: "/etc/exports",
-			},
+		"storage": {
+			"files": [{
+				"filesystem": "root",
+				"path": "/etc/exports",
+				"contents": { "source": "data:,%s" },
+				"user": {"name": "core"},
+				"group": {"name": "core"}
+			}, {
+				"filesystem": "root",
+				"path": "/etc/hostname",
+				"contents": { "source": "data:,nfs1" },
+				"mode": 511
+			}]
 		},
-		Hostname: "nfs1",
-	}
+		"systemd": {
+			"units": [{
+				"name": "rpc-statd.service",
+				"enabled": true
+			}, {
+				"name": "rpc-mountd.service",
+				"enabled": true
+			}, {
+				"name": "nfsd.service",
+				"enabled": true
+			}, {
+				"name": "start-the-services.service",
+				"enabled": true,
+				"contents": "[Unit]\nAfter=rpc-statd.service\nRequires=rpc-statd.service\nAfter=rpc-mountd.service\nRequires=rpc-mountd.service\nAfter=nfsd.service\nRequires=nfsd.service\n\n[Service]\nExecStart=/usr/bin/echo start\n\n[Install]\nWantedBy=multi-user.target"
+			}]
+		}
+	}`, dataurl.EscapeString("/tmp  *(ro,insecure,all_squash,no_subtree_check,fsid=0)")))
 
-	mounttmpl = `[Unit]
-Description=NFS Client
-After=network-online.target
-Requires=network-online.target
-After=rpc-statd.service
-Requires=rpc-statd.service
-
-[Mount]
-What=%s:/tmp
-Where=/mnt
-Type=nfs
-Options=defaults,noexec,nfsvers=%d
-`
+	mounttmpl = `[Unit]\nDescription=NFS Client\nAfter=network-online.target\nRequires=network-online.target\nAfter=rpc-statd.service\nRequires=rpc-statd.service\n\n[Mount]\nWhat=%s:/tmp\nWhere=/mnt\nType=nfs\nOptions=defaults,noexec,nfsvers=%d\n\n[Install]\nWantedBy=multi-user.target`
 )
 
 func init() {
 	register.Register(&register.Test{
-		Run:         NFSv3,
-		ClusterSize: 0,
-		Name:        "linux.nfs.v3",
+		Run:              NFSv3,
+		ClusterSize:      0,
+		Name:             "linux.nfs.v3",
 	})
 	register.Register(&register.Test{
-		Run:         NFSv4,
-		ClusterSize: 0,
-		Name:        "linux.nfs.v4",
+		Run:              NFSv4,
+		ClusterSize:      0,
+		Name:             "linux.nfs.v4",
 	})
 }
 
 func testNFS(c cluster.TestCluster, nfsversion int) {
-	m1, err := c.NewMachine(conf.CloudConfig(nfsserverconf.String()))
+	m1, err := c.NewMachine(nfsserverconf)
 	if err != nil {
 		c.Fatalf("Cluster.NewMachine: %s", err)
 	}
@@ -100,20 +98,28 @@ func testNFS(c cluster.TestCluster, nfsversion int) {
 
 	c.Logf("Test file %q created on server.", tmp)
 
-	c2 := config.CloudConfig{
-		CoreOS: config.CoreOS{
-			Units: []config.Unit{
-				config.Unit{
-					Name:    "mnt.mount",
-					Command: "start",
-					Content: fmt.Sprintf(mounttmpl, m1.PrivateIP(), nfsversion),
-				},
-			},
+	c2 := conf.Ignition(fmt.Sprintf(`{
+		"ignition": {
+			"version": "2.1.0"
 		},
-		Hostname: "nfs2",
-	}
+		"storage": {
+			"files": [{
+				"filesystem": "root",
+                                "path": "/etc/hostname",
+                                "contents": { "source": "data:,nfs2" },
+				"mode": 511
+			}]
+		},
+		"systemd": {
+			"units": [{
+				"name": "mnt.mount",
+				"enabled": true,
+				"contents": "%s"
+			}]
+		}
+	}`, fmt.Sprintf(mounttmpl, m1.PrivateIP(), nfsversion)))
 
-	m2, err := c.NewMachine(conf.CloudConfig(c2.String()))
+	m2, err := c.NewMachine(c2)
 	if err != nil {
 		c.Fatalf("Cluster.NewMachine: %s", err)
 	}
