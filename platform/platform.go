@@ -282,6 +282,7 @@ func CheckMachine(m Machine) error {
 	}
 
 	if len(out) > 0 {
+		Manhole(m)
 		return fmt.Errorf("some systemd units failed:\n%s", out)
 	}
 

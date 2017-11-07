@@ -28,7 +28,7 @@ var (
 	outputDir          string
 	kolaPlatform       string
 	defaultTargetBoard = sdk.DefaultBoard()
-	kolaPlatforms      = []string{"aws", "do", "esx", "gce", "oci", "packet", "qemu"}
+	kolaPlatforms      = []string{"aws", "azure", "do", "esx", "gce", "oci", "packet", "qemu"}
 	kolaDefaultImages  = map[string]string{
 		"amd64-usr": sdk.BuildRoot() + "/images/amd64-usr/latest/coreos_production_image.bin",
 		"arm64-usr": sdk.BuildRoot() + "/images/arm64-usr/latest/coreos_production_image.bin",
@@ -63,6 +63,11 @@ func init() {
 	sv(&kola.AWSOptions.AMI, "aws-ami", "alpha", `AWS AMI ID, or (alpha|beta|stable) to use the latest image`)
 	sv(&kola.AWSOptions.InstanceType, "aws-type", "t2.small", "AWS instance type")
 	sv(&kola.AWSOptions.SecurityGroup, "aws-sg", "kola", "AWS security group name")
+
+	// azure-specific options
+	sv(&kola.AzureOptions.DiskURI, "azure-disk-uri", "", "Azure disk uri")
+	sv(&kola.AzureOptions.Location, "azure-location", "westus", "Azure location (default \"westus\"")
+	sv(&kola.AzureOptions.Size, "azure-size", "Standard_A1", "Azure machine size (default \"Standard_A1\")")
 
 	// do-specific options
 	sv(&kola.DOOptions.ConfigPath, "do-config-file", "", "DigitalOcean config file (default \"~/"+auth.DOConfigPath+"\")")

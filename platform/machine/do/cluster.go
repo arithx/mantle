@@ -61,7 +61,7 @@ func NewCluster(opts *do.Options, rconf *platform.RuntimeConfig) (platform.Clust
 		// The DO API requires us to provide an SSH key for
 		// Container Linux droplets. Provide one that can never
 		// authenticate.
-		key, err = do.GenerateFakeKey()
+		key, err = platform.GenerateFakeKey()
 		if err != nil {
 			return nil, err
 		}

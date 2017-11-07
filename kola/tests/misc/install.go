@@ -38,6 +38,7 @@ func init() {
     }]
   }
 }`),
+		ExcludePlatforms: []string{"azure"},
 	})
 }
 

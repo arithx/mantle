@@ -22,10 +22,24 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/coreos/mantle/platform/api/azure"
+	"github.com/coreos/mantle/platform"
 )
 
 const AzureProfilePath = ".azure/azureProfile.json"
+
+type Options struct {
+        *platform.Options
+
+        SubscriptionName string
+        SubscriptionID   string
+
+        // Azure API endpoint. If unset, the Azure SDK default will be used.
+        ManagementURL         string
+        ManagementCertificate []byte
+
+        // Azure Storage API endpoint suffix. If unset, the Azure SDK default will be used.
+        StorageEndpointSuffix string
+}
 
 type AzureEnvironment struct {
 	ActiveDirectoryEndpointURL                        string `json:"activeDirectoryEndpointUrl"`
@@ -68,13 +82,13 @@ type AzureProfile struct {
 	Subscriptions []AzureSubscription `json:"subscriptions"`
 }
 
-// AsOptions converts all subscriptions into a slice of azure.Options.
+// AsOptions converts all subscriptions into a slice of Options.
 // If there is an environment with a name matching the subscription, that environment's storage endpoint will be copied to the options.
-func (ap *AzureProfile) AsOptions() []azure.Options {
-	var o []azure.Options
+func (ap *AzureProfile) AsOptions() []Options {
+	var o []Options
 
 	for _, sub := range ap.Subscriptions {
-		newo := azure.Options{
+		newo := Options{
 			SubscriptionName:      sub.Name,
 			SubscriptionID:        sub.ID,
 			ManagementURL:         sub.ManagementEndpointURL,
@@ -95,10 +109,10 @@ func (ap *AzureProfile) AsOptions() []azure.Options {
 	return o
 }
 
-// SubscriptionOptions returns the name subscription in the Azure profile as a azure.Options struct.
+// SubscriptionOptions returns the name subscription in the Azure profile as a Options struct.
 // If the subscription name is "", the first subscription is returned.
 // If there are no subscriptions or the named subscription is not found, SubscriptionOptions returns nil.
-func (ap *AzureProfile) SubscriptionOptions(name string) *azure.Options {
+func (ap *AzureProfile) SubscriptionOptions(name string) *Options {
 	opts := ap.AsOptions()
 
 	if len(opts) == 0 {

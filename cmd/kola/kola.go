@@ -135,6 +135,11 @@ func writeProps() error {
 		AMI          string `json:"ami"`
 		InstanceType string `json:"type"`
 	}
+	type Azure struct {
+		DiskURI  string `json:"diskUri"`
+		Location string `json:"location"`
+		Size     string `json:"size"`
+	}
 	type DO struct {
 		Region string `json:"region"`
 		Size   string `json:"size"`
@@ -167,6 +172,7 @@ func writeProps() error {
 		Platform string   `json:"platform"`
 		Board    string   `json:"board"`
 		AWS      AWS      `json:"aws"`
+		Azure    Azure    `json:"azure"`
 		DO       DO       `json:"do"`
 		ESX      ESX      `json:"esx"`
 		GCE      GCE      `json:"gce"`
@@ -181,6 +187,11 @@ func writeProps() error {
 			Region:       kola.AWSOptions.Region,
 			AMI:          kola.AWSOptions.AMI,
 			InstanceType: kola.AWSOptions.InstanceType,
+		},
+		Azure: Azure{
+			DiskURI:  kola.AzureOptions.DiskURI,
+			Location: kola.AzureOptions.Location,
+			Size:     kola.AzureOptions.Size,
 		},
 		DO: DO{
 			Region: kola.DOOptions.Region,

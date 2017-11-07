@@ -18,7 +18,9 @@ import (
 	"encoding/xml"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/management"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
 // OSImage struct for https://msdn.microsoft.com/en-us/library/azure/jj157192.aspx call.
@@ -65,4 +67,32 @@ func (a *API) ShareImage(image, permission string) error {
 func IsConflictError(err error) bool {
 	azerr, ok := err.(management.AzureError)
 	return ok && azerr.Code == "ConflictError"
+}
+
+func (a *API) CreateImage(name, resourceGroup, blobURI string) (compute.Image, error) {
+	auth, err := auth.GetClientSetup(compute.DefaultBaseURI)
+	if err != nil {
+		return compute.Image{}, err
+	}
+	client := compute.NewImagesClientWithBaseURI(auth.BaseURI, auth.SubscriptionID)
+	client.Authorizer = auth
+
+	_, err = client.CreateOrUpdate(resourceGroup, name, compute.Image{
+		Name: &name,
+		Location: &a.opts.Location,
+		ImageProperties: &compute.ImageProperties{
+			StorageProfile: &compute.ImageStorageProfile{
+				OsDisk: &compute.ImageOSDisk{
+					OsType: compute.Linux,
+					OsState: compute.Generalized,
+					BlobURI: &blobURI,
+				},
+			},
+		},
+	}, nil)
+	if err != nil {
+		return compute.Image{}, err
+	}
+
+	return client.Get(resourceGroup, name, "")
 }

@@ -21,6 +21,13 @@ import (
 type Options struct {
 	*platform.Options
 
+	AzureProfile      string
+	AzureSubscription string
+
+	DiskURI  string
+	Size     string
+	Location string
+
 	SubscriptionName string
 	SubscriptionID   string
 

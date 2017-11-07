@@ -2,8 +2,10 @@ package: github.com/coreos/mantle
 import:
 - package: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
+- package: github.com/Azure/go-autorest
+  version: 7f8a665a21a63f5a81a07cf517c2647d0574c4f5
 - package: github.com/Azure/azure-sdk-for-go
-  version: f8b0607613f19ae9509b5ed6fbfda56caf06d59d
+  version: ecf40e315d5ab0ca6d7b3b7f7fbb5c1577814813
   subpackages:
   - management
   - management/location

@@ -34,12 +34,14 @@ import (
 	"github.com/coreos/mantle/kola/torcx"
 	"github.com/coreos/mantle/platform"
 	awsapi "github.com/coreos/mantle/platform/api/aws"
+	azureapi "github.com/coreos/mantle/platform/api/azure"
 	doapi "github.com/coreos/mantle/platform/api/do"
 	esxapi "github.com/coreos/mantle/platform/api/esx"
 	gcloudapi "github.com/coreos/mantle/platform/api/gcloud"
 	ociapi "github.com/coreos/mantle/platform/api/oci"
 	packetapi "github.com/coreos/mantle/platform/api/packet"
 	"github.com/coreos/mantle/platform/machine/aws"
+	"github.com/coreos/mantle/platform/machine/azure"
 	"github.com/coreos/mantle/platform/machine/do"
 	"github.com/coreos/mantle/platform/machine/esx"
 	"github.com/coreos/mantle/platform/machine/gcloud"
@@ -54,6 +56,7 @@ var (
 
 	Options       = platform.Options{}
 	AWSOptions    = awsapi.Options{Options: &Options}    // glue to set platform options from main
+	AzureOptions  = azureapi.Options{Options: &Options}  // glue to set platform options from main
 	DOOptions     = doapi.Options{Options: &Options}     // glue to set platform options from main
 	ESXOptions    = esxapi.Options{Options: &Options}    // glue to set platform options from main
 	GCEOptions    = gcloudapi.Options{Options: &Options} // glue to set platform options from main
@@ -125,6 +128,8 @@ func NewCluster(pltfrm string, rconf *platform.RuntimeConfig) (cluster platform.
 	switch pltfrm {
 	case "aws":
 		cluster, err = aws.NewCluster(&AWSOptions, rconf)
+	case "azure":
+		cluster, err = azure.NewCluster(&AzureOptions, rconf)
 	case "do":
 		cluster, err = do.NewCluster(&DOOptions, rconf)
 	case "esx":

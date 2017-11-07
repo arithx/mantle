@@ -22,6 +22,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	"github.com/Azure/azure-sdk-for-go/arm/storage"
 )
 
 var (
@@ -30,6 +31,11 @@ var (
 
 func (a *API) GetStorageServiceKeys(account string) (storageservice.GetStorageServiceKeysResponse, error) {
 	return storageservice.NewClient(a.client).GetStorageServiceKeys(account)
+}
+
+func (a *API) GetStorageServiceKeysNew(account string) (storage.AccountListKeysResult, error) {
+	client := storage.NewAccountsClient(a.opts.SubscriptionID)
+	return client.ListKeys("kola", account)
 }
 
 // https://msdn.microsoft.com/en-us/library/azure/jj157192.aspx
