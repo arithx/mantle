@@ -20,13 +20,25 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/azure-sdk-for-go/management"
 	"github.com/Azure/azure-sdk-for-go/management/storageservice"
+	"github.com/Azure/azure-sdk-for-go/arm/storage"
 )
 
 var (
 	azureImageURL = "services/images"
 )
+
+func (a *API) GetStorageServiceKeysARM(resourceGroup, account string) (storage.AccountListKeysResult, error) {
+	auth, err := auth.GetClientSetup(storage.DefaultBaseURI)
+	if err != nil {
+		return storage.AccountListKeysResult{}, err
+	}
+	client := storage.NewAccountsClientWithBaseURI(auth.BaseURI, auth.SubscriptionID)
+	client.Authorizer = auth
+	return client.ListKeys(resourceGroup, account)
+}
 
 func (a *API) GetStorageServiceKeys(account string) (storageservice.GetStorageServiceKeysResponse, error) {
 	return storageservice.NewClient(a.client).GetStorageServiceKeys(account)

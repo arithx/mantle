@@ -1,5 +1,5 @@
-hash: 57283d4781c33b1d003b989068252bae4a7f76a7488c942133b4b6ce5af7d90d
-updated: 2017-10-24T18:09:13.866306264-07:00
+hash: 8513318896b4ab898e55ead139f5a99d1fae8a935610c6a7271307db313d4f35
+updated: 2017-11-07T16:14:35.962768605-08:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -44,10 +44,19 @@ imports:
 - name: github.com/Azure/azure-sdk-for-go
   version: f8b0607613f19ae9509b5ed6fbfda56caf06d59d
   subpackages:
+  - arm/storage
   - management
   - management/location
   - management/storageservice
   - storage
+- name: github.com/Azure/go-autorest
+  version: 7f8a665a21a63f5a81a07cf517c2647d0574c4f5
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+  - autorest/azure/auth
+  - autorest/date
 - name: github.com/beorn7/perks
   version: b965b613227fddccbfffe13eae360ed3fa822f8d
   subpackages:
@@ -158,10 +167,14 @@ imports:
   version: 71acacd42f85e5e82f70a55327789582a5200a90
   subpackages:
   - md2man
+- name: github.com/dgrijalva/jwt-go
+  version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/digitalocean/godo
   version: 77ea48de76a7b31b234d854f15d003c68bb2fb90
   subpackages:
   - context
+- name: github.com/dimchansky/utfbom
+  version: 6c6132ff69f0f6c088739067407b5d32c52e1d0f
 - name: github.com/gengo/grpc-gateway
   version: dcb844349dc5d2cb0300fdc4d2d374839d0d2e13
   subpackages:
