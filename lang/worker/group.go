@@ -74,6 +74,9 @@ func (wg *WorkerGroup) Start(worker Worker) error {
 			if err := worker(wg.ctx); err != nil {
 				wg.addErr(err)
 			}
+			if err := wg.ctx.Err(); err != nil {
+				wg.addErr(err)
+			}
 			<-wg.limit
 		}()
 		return nil
