@@ -233,7 +233,8 @@ func locksmithCluster(c cluster.TestCluster) {
 
 	c.MustSSH(machs[0], "locksmithctl status")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
 	wg := worker.NewWorkerGroup(ctx, len(machs))
 
 	// reboot all the things
