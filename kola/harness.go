@@ -70,6 +70,8 @@ var (
 	// manifest given to kola.
 	TorcxManifest *torcx.Manifest = nil
 
+	UpdatePayload string
+
 	consoleChecks = []struct {
 		desc     string
 		match    *regexp.Regexp
@@ -287,10 +289,10 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 	}
 
 	opts := harness.Options{
-		OutputDir: outputDir,
-		Parallel:  TestParallelism,
-		Verbose:   true,
-		Reporters: reporters.Reporters{
+		OutputDir:     outputDir,
+		Parallel:      TestParallelism,
+		Verbose:       true,
+		Reporters:     reporters.Reporters{
 			reporters.NewJSONReporter("report.json", pltfrm, versionStr),
 		},
 	}

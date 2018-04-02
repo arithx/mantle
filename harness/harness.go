@@ -446,13 +446,13 @@ func (t *H) Run(name string, f func(t *H)) bool {
 		return true
 	}
 	t = &H{
-		barrier:   make(chan bool),
-		signal:    make(chan bool),
-		name:      testName,
-		suite:     t.suite,
-		parent:    t,
-		level:     t.level + 1,
-		reporters: t.reporters,
+		barrier:     make(chan bool),
+		signal:      make(chan bool),
+		name:        testName,
+		suite:       t.suite,
+		parent:      t,
+		level:       t.level + 1,
+		reporters:   t.reporters,
 	}
 	t.w = indenter{t}
 	// Indent logs 8 spaces to distinguish them from sub-test headers.

@@ -136,7 +136,7 @@ import:
   - wal
   - wal/walpb
 - package: github.com/coreos/go-omaha
-  version: f8acb2d7b76c4156223538ca1806a888e764af3d
+  version: e409d983eb60842452f0fb6245137458ca45201a
   subpackages:
   - omaha
 - package: github.com/coreos/go-semver

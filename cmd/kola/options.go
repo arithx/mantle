@@ -51,6 +51,7 @@ func init() {
 	root.PersistentFlags().IntVarP(&kola.TestParallelism, "parallel", "j", 1, "number of tests to run in parallel")
 	sv(&kola.TAPFile, "tapfile", "", "file to write TAP results to")
 	sv(&kola.Options.BaseName, "basename", "kola", "Cluster name prefix")
+	sv(&kola.UpdatePayload, "update-payload", "", "Path to an update payload that should be made available to tests")
 
 	// aws-specific options
 	defaultRegion := os.Getenv("AWS_REGION")

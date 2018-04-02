@@ -276,12 +276,12 @@ func (s *Suite) Run() (err error) {
 func (s *Suite) runTests(out, tap io.Writer) error {
 	s.running = 1 // Set the count to 1 for the main (sequential) test.
 	t := &H{
-		signal:    make(chan bool),
-		barrier:   make(chan bool),
-		w:         out,
-		tap:       tap,
-		suite:     s,
-		reporters: s.opts.Reporters,
+		signal:      make(chan bool),
+		barrier:     make(chan bool),
+		w:           out,
+		tap:         tap,
+		suite:       s,
+		reporters:   s.opts.Reporters,
 	}
 	tRunner(t, func(t *H) {
 		for name, test := range s.tests {
