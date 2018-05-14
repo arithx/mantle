@@ -1,5 +1,5 @@
-hash: 38a07ddcf4a0cc0e0653933542a4064beb3a4e190a704a78996c57c4e04e37bd
-updated: 2018-06-12T16:16:01.992869409-04:00
+hash: c8ad42179721795664e390d880ed2aaedeac1b7a039dec79e6f3cd785a5327b0
+updated: 2018-06-13T10:07:31.985455374-05:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -42,12 +42,26 @@ imports:
   - service/s3/s3manager
   - service/sts
 - name: github.com/Azure/azure-sdk-for-go
-  version: f8b0607613f19ae9509b5ed6fbfda56caf06d59d
+  version: ecf40e315d5ab0ca6d7b3b7f7fbb5c1577814813
   subpackages:
+  - arm/compute
+  - arm/network
+  - arm/resources/resources
+  - arm/storage
   - management
   - management/location
   - management/storageservice
   - storage
+- name: github.com/Azure/go-autorest
+  version: 7f8a665a21a63f5a81a07cf517c2647d0574c4f5
+  subpackages:
+  - autorest
+  - autorest/adal
+  - autorest/azure
+  - autorest/azure/auth
+  - autorest/date
+  - autorest/to
+  - autorest/validation
 - name: github.com/beorn7/perks
   version: b965b613227fddccbfffe13eae360ed3fa822f8d
   subpackages:
@@ -165,10 +179,14 @@ imports:
   version: 71acacd42f85e5e82f70a55327789582a5200a90
   subpackages:
   - md2man
+- name: github.com/dgrijalva/jwt-go
+  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
 - name: github.com/digitalocean/godo
   version: 7a32b5ce17203924a21366d5031032fd326d5051
   subpackages:
   - context
+- name: github.com/dimchansky/utfbom
+  version: 6c6132ff69f0f6c088739067407b5d32c52e1d0f
 - name: github.com/gengo/grpc-gateway
   version: dcb844349dc5d2cb0300fdc4d2d374839d0d2e13
   subpackages:
@@ -231,6 +249,10 @@ imports:
   - vhdcore/validator
   - vhdcore/vhdfile
   - vhdcore/writer
+- name: github.com/Microsoft/azure-vhd-utils-for-go
+  version: 2dd43d88c85c06c55828c86159d4583db9d41fbb
+  subpackages:
+  - vhdcore/validator
 - name: github.com/packethost/packngo
   version: 80f62d78849dba04e42d8812329ee00558e37c5b
 - name: github.com/pin/tftp
@@ -342,6 +364,16 @@ imports:
   version: 9ccfe848b9db8435a24c424abbc07a921adf1df5
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: 5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877
+  subpackages:
+  - encoding
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/unicode
+  - internal/utf8internal
+  - runes
+  - transform
 - name: google.golang.org/api
   version: c858ef4400610cbfd097ffc5f5c6e4a1a51eac86
   subpackages:
