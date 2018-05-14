@@ -58,6 +58,9 @@ func init() {
 		Run:         journalRemote,
 		ClusterSize: 0,
 		Name:        "systemd.journal.remote",
+		// Disabled on Azure because setting hostname
+		// is required at the instance creation level
+		ExcludePlatforms: []string{"azure"},
 	})
 }
 
