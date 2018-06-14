@@ -106,7 +106,7 @@ func runRun(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	runErr := kola.RunTests(pattern, kolaPlatform, outputDir)
+	runErr := kola.RunTests(pattern, kolaPlatform, kolaDistro, outputDir)
 
 	// needs to be after RunTests() because harness empties the directory
 	if err := writeProps(); err != nil {
@@ -160,6 +160,7 @@ func writeProps() error {
 	return enc.Encode(&struct {
 		Cmdline  []string `json:"cmdline"`
 		Platform string   `json:"platform"`
+		Distro   string   `json:"distro"`
 		Board    string   `json:"board"`
 		AWS      AWS      `json:"aws"`
 		DO       DO       `json:"do"`
@@ -170,6 +171,7 @@ func writeProps() error {
 	}{
 		Cmdline:  os.Args,
 		Platform: kolaPlatform,
+		Distro:   kolaDistro,
 		Board:    kola.QEMUOptions.Board,
 		AWS: AWS{
 			Region:       kola.AWSOptions.Region,
