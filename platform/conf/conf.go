@@ -17,6 +17,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"io/ioutil"
 	"strings"
 
@@ -32,6 +33,7 @@ import (
 	v22 "github.com/coreos/ignition/config/v2_2"
 	v22types "github.com/coreos/ignition/config/v2_2/types"
 	"github.com/coreos/pkg/capnslog"
+	"github.com/vincent-petithory/dataurl"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -275,6 +277,65 @@ func (c *Conf) WriteFile(name string) error {
 // Bytes returns the serialized userdata in Conf.
 func (c *Conf) Bytes() []byte {
 	return []byte(c.String())
+}
+
+func (c *Conf) AddFile(filesystem, path, contents string) error {
+	if c.ignitionV2 != nil {
+		return c.addFileV2(filesystem, path, contents)
+	} else if c.ignitionV21 != nil {
+		return c.addFileV21(filesystem, path, contents)
+	} else if c.ignitionV22 != nil {
+		return c.addFileV22(filesystem, path, contents)
+	}
+	return nil
+}
+
+func (c *Conf) addFileV2(filesystem, path, contents string) error {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(contents)))
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		return fmt.Errorf("URL is nil")
+	}
+	c.ignitionV2.Storage.Files = append (c.ignitionV2.Storage.Files, v2types.File{
+		Filesystem: filesystem,
+		Path:       v2types.Path(path),
+		Contents:   v2types.FileContents{
+			Source: v2types.Url(*u),
+		},
+	})
+	return nil
+}
+
+func (c *Conf) addFileV21(filesystem, path, contents string) error {
+	c.ignitionV21.Storage.Files = append (c.ignitionV21.Storage.Files, v21types.File{
+		Node: v21types.Node{
+			Filesystem: filesystem,
+			Path: path,
+		},
+		FileEmbedded1: v21types.FileEmbedded1{
+			Contents: v21types.FileContents{
+				Source: dataurl.EncodeBytes([]byte(contents)),
+			},
+		},
+	})
+	return nil
+}
+
+func (c *Conf) addFileV22(filesystem, path, contents string) error {
+	c.ignitionV22.Storage.Files = append (c.ignitionV22.Storage.Files, v22types.File{
+		Node: v22types.Node{
+			Filesystem: filesystem,
+			Path: path,
+		},
+		FileEmbedded1: v22types.FileEmbedded1{
+			Contents: v22types.FileContents{
+				Source: dataurl.EncodeBytes([]byte(contents)),
+			},
+		},
+	})
+	return nil
 }
 
 func (c *Conf) addSystemdUnitV1(name, contents string, enable bool) {
