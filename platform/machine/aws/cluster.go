@@ -84,6 +84,10 @@ func (ac *cluster) NewMachine(userdata *conf.UserData) (platform.Machine, error)
 		return nil, err
 	}
 
+	if ac.RuntimeConf().Distribution == "rhcos" {
+		conf.AddFile("root", "/etc/sudoers.d/80-core", "core ALL=(ALL) NOPASSWD: ALL")
+	}
+
 	var keyname string
 	if !ac.RuntimeConf().NoSSHKeyInMetadata {
 		keyname = ac.Name()
