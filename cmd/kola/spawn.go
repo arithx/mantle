@@ -120,6 +120,7 @@ func doSpawn(cmd *cobra.Command, args []string) error {
 
 	cluster, err := kola.NewCluster(kolaPlatform, &platform.RuntimeConfig{
 		OutputDir:        outputDir,
+		Distribution:     kolaDistro,
 		AllowFailedUnits: true,
 	})
 	if err != nil {
