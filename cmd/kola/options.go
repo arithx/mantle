@@ -28,8 +28,10 @@ import (
 var (
 	outputDir          string
 	kolaPlatform       string
+	kolaDistro         string
 	defaultTargetBoard = sdk.DefaultBoard()
 	kolaPlatforms      = []string{"aws", "do", "esx", "gce", "packet", "qemu"}
+	kolaDistros        = []string{"cl", "rhcos"}
 	kolaDefaultImages  = map[string]string{
 		"amd64-usr": sdk.BuildRoot() + "/images/amd64-usr/latest/coreos_production_image.bin",
 		"arm64-usr": sdk.BuildRoot() + "/images/arm64-usr/latest/coreos_production_image.bin",
@@ -50,6 +52,7 @@ func init() {
 	sv(&outputDir, "output-dir", "", "Temporary output directory for test data and logs")
 	sv(&kola.TorcxManifestFile, "torcx-manifest", "", "Path to a torcx manifest that should be made available to tests")
 	root.PersistentFlags().StringVarP(&kolaPlatform, "platform", "p", "qemu", "VM platform: "+strings.Join(kolaPlatforms, ", "))
+	root.PersistentFlags().StringVarP(&kolaPlatform, "distro", "l", "cl", "Distribution: "+strings.Join(kolaDistros, ", "))
 	root.PersistentFlags().IntVarP(&kola.TestParallelism, "parallel", "j", 1, "number of tests to run in parallel")
 	sv(&kola.TAPFile, "tapfile", "", "file to write TAP results to")
 	sv(&kola.Options.BaseName, "basename", "kola", "Cluster name prefix")
@@ -124,6 +127,17 @@ func syncOptions() error {
 	}
 	if !ok {
 		return fmt.Errorf("unsupport platform %q", kolaPlatform)
+	}
+
+	ok = false
+	for _, distro := range kolaDistros {
+		if distro == kolaDistro {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return fmt.Errorf("unsupport distribution %q", kolaDistro)
 	}
 
 	image, ok := kolaDefaultImages[kola.QEMUOptions.Board]
