@@ -160,7 +160,7 @@ func NewCluster(pltfrm string, rconf *platform.RuntimeConfig) (cluster platform.
 	return
 }
 
-func filterTests(tests map[string]*register.Test, pattern, platform string, version semver.Version) (map[string]*register.Test, error) {
+func filterTests(tests map[string]*register.Test, pattern, platform, distro string, version semver.Version) (map[string]*register.Test, error) {
 	r := make(map[string]*register.Test)
 
 	for name, t := range tests {
@@ -188,6 +188,24 @@ func filterTests(tests map[string]*register.Test, pattern, platform string, vers
 		}
 		for _, p := range t.ExcludePlatforms {
 			if p == platform {
+				allowed = false
+			}
+		}
+		if !allowed {
+			continue
+		}
+
+		allowed = true
+		for _, d := range t.Distros {
+			if d == distro {
+				allowed = true
+				break
+			} else {
+				allowed = false
+			}
+		}
+		for _, d := range t.ExcludeDistros {
+			if d == distro {
 				allowed = false
 			}
 		}
@@ -239,7 +257,7 @@ func versionOutsideRange(version, minVersion, endVersion semver.Version) bool {
 // register tests in their init() function.
 // outputDir is where various test logs and data will be written for
 // analysis after the test run. If it already exists it will be erased!
-func RunTests(pattern, pltfrm, outputDir string) error {
+func RunTests(pattern, pltfrm, distro, outputDir string) error {
 	var versionStr string
 
 	// Avoid incurring cost of starting machine in getClusterSemver when
@@ -248,7 +266,7 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 	// 2) glob is an exact match which means minVersion will be ignored
 	//    either way
 	// 3) the provided torcx flag is wrong
-	tests, err := filterTests(register.Tests, pattern, pltfrm, semver.Version{})
+	tests, err := filterTests(register.Tests, pattern, pltfrm, distro, semver.Version{})
 	if err != nil {
 		plog.Fatal(err)
 	}
@@ -274,7 +292,7 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 	}
 
 	if !skipGetVersion {
-		version, err := getClusterSemver(pltfrm, outputDir)
+		version, err := getClusterSemver(pltfrm, distro, outputDir)
 		if err != nil {
 			plog.Fatal(err)
 		}
@@ -282,7 +300,7 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 		versionStr = version.String()
 
 		// one more filter pass now that we know real version
-		tests, err = filterTests(tests, pattern, pltfrm, *version)
+		tests, err = filterTests(tests, pattern, pltfrm, distro, *version)
 		if err != nil {
 			plog.Fatal(err)
 		}
@@ -300,7 +318,7 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 	for _, test := range tests {
 		test := test // for the closure
 		run := func(h *harness.H) {
-			runTest(h, test, pltfrm)
+			runTest(h, test, pltfrm, distro)
 		}
 		htests.Add(test.Name, run)
 	}
@@ -326,7 +344,7 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 
 // getClusterSemVer returns the CoreOS semantic version via starting a
 // machine and checking
-func getClusterSemver(pltfrm, outputDir string) (*semver.Version, error) {
+func getClusterSemver(pltfrm, distro, outputDir string) (*semver.Version, error) {
 	var err error
 
 	testDir := filepath.Join(outputDir, "get_cluster_semver")
@@ -335,7 +353,8 @@ func getClusterSemver(pltfrm, outputDir string) (*semver.Version, error) {
 	}
 
 	cluster, err := NewCluster(pltfrm, &platform.RuntimeConfig{
-		OutputDir: testDir,
+		OutputDir:    testDir,
+		Distribution: distro,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating cluster for semver check: %v", err)
@@ -363,7 +382,7 @@ func getClusterSemver(pltfrm, outputDir string) (*semver.Version, error) {
 // runTest is a harness for running a single test.
 // outputDir is where various test logs and data will be written for
 // analysis after the test run. It should already exist.
-func runTest(h *harness.H, t *register.Test, pltfrm string) {
+func runTest(h *harness.H, t *register.Test, pltfrm, distro string) {
 	h.Parallel()
 
 	// don't go too fast, in case we're talking to a rate limiting api like AWS EC2.
@@ -375,6 +394,7 @@ func runTest(h *harness.H, t *register.Test, pltfrm string) {
 
 	rconf := &platform.RuntimeConfig{
 		OutputDir:          h.OutputDir(),
+		Distribution:       distro,
 		NoSSHKeyInUserData: t.HasFlag(register.NoSSHKeyInUserData),
 		NoSSHKeyInMetadata: t.HasFlag(register.NoSSHKeyInMetadata),
 		NoEnableSelinux:    t.HasFlag(register.NoEnableSelinux),
