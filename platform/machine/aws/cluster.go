@@ -85,7 +85,7 @@ func (ac *cluster) NewMachine(userdata *conf.UserData) (platform.Machine, error)
 	}
 
 	if ac.RuntimeConf().Distribution == "rhcos" {
-		conf.AddFile("root", "/etc/sudoers.d/80-core", "core ALL=(ALL) NOPASSWD: ALL")
+		conf.MaskSystemdUnit("network.service")
 	}
 
 	var keyname string
