@@ -338,6 +338,55 @@ func (c *Conf) addFileV22(filesystem, path, contents string) error {
 	return nil
 }
 
+func (c *Conf) maskSystemdUnitV1(name string) {
+	c.ignitionV1.Systemd.Units = append(c.ignitionV1.Systemd.Units, v1types.SystemdUnit{
+		Name: v1types.SystemdUnitName(name),
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV2(name string) {
+	c.ignitionV2.Systemd.Units = append(c.ignitionV2.Systemd.Units, v2types.SystemdUnit{
+		Name: v2types.SystemdUnitName(name),
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV21(name string) {
+	c.ignitionV21.Systemd.Units = append(c.ignitionV21.Systemd.Units, v21types.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV22(name string) {
+	c.ignitionV22.Systemd.Units = append(c.ignitionV22.Systemd.Units, v22types.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitCloudConfig(name string) {
+	c.cloudconfig.CoreOS.Units = append(c.cloudconfig.CoreOS.Units, cci.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) MaskSystemdUnit(name string) {
+	if c.ignitionV1 != nil {
+		c.maskSystemdUnitV1(name)
+	} else if c.ignitionV2 != nil {
+		c.maskSystemdUnitV2(name)
+	} else if c.ignitionV21 != nil {
+		c.maskSystemdUnitV21(name)
+	} else if c.ignitionV22 != nil {
+		c.maskSystemdUnitV22(name)
+	} else if c.cloudconfig != nil {
+		c.maskSystemdUnitCloudConfig(name)
+	}
+}
+
 func (c *Conf) addSystemdUnitV1(name, contents string, enable bool) {
 	c.ignitionV1.Systemd.Units = append(c.ignitionV1.Systemd.Units, v1types.SystemdUnit{
 		Name:     v1types.SystemdUnitName(name),
