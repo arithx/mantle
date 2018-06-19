@@ -371,12 +371,16 @@ func getClusterSemver(pltfrm, distro, outputDir string) (*semver.Version, error)
 		return nil, fmt.Errorf("parsing /etc/os-release: %v: %s", err, stderr)
 	}
 
-	version, err := semver.NewVersion(strings.Split(string(out), "=")[1])
-	if err != nil {
-		return nil, fmt.Errorf("parsing os-release semver: %v", err)
+	if distro != "rhcos" {
+		version, err := semver.NewVersion(strings.Split(string(out), "=")[1])
+		if err != nil {
+			return nil, fmt.Errorf("parsing os-release semver: %v", err)
+		}
+
+		return version, nil
 	}
 
-	return version, nil
+	return &semver.Version{}, nil
 }
 
 // runTest is a harness for running a single test.
