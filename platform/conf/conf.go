@@ -277,6 +277,114 @@ func (c *Conf) Bytes() []byte {
 	return []byte(c.String())
 }
 
+func (c *Conf) AddFile(filesystem, path, contents string) error {
+	if c.ignitionV2 != nil {
+		return c.addFileV2(filesystem, path, contents)
+	} else if c.ignitionV21 != nil {
+		return c.addFileV21(filesystem, path, contents)
+	} else if c.ignitionV22 != nil {
+		return c.addFileV22(filesystem, path, contents)
+	}
+	return nil
+}
+
+func (c *Conf) addFileV2(filesystem, path, contents string) error {
+	u, err := url.Parse(dataurl.EncodeBytes([]byte(contents)))
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		return fmt.Errorf("URL is nil")
+	}
+	c.ignitionV2.Storage.Files = append (c.ignitionV2.Storage.Files, v2types.File{
+		Filesystem: filesystem,
+		Path:       v2types.Path(path),
+		Contents:   v2types.FileContents{
+			Source: v2types.Url(*u),
+		},
+	})
+	return nil
+}
+
+func (c *Conf) addFileV21(filesystem, path, contents string) error {
+	c.ignitionV21.Storage.Files = append (c.ignitionV21.Storage.Files, v21types.File{
+		Node: v21types.Node{
+			Filesystem: filesystem,
+			Path: path,
+		},
+		FileEmbedded1: v21types.FileEmbedded1{
+			Contents: v21types.FileContents{
+				Source: dataurl.EncodeBytes([]byte(contents)),
+			},
+		},
+	})
+	return nil
+}
+
+func (c *Conf) addFileV22(filesystem, path, contents string) error {
+	c.ignitionV22.Storage.Files = append (c.ignitionV22.Storage.Files, v22types.File{
+		Node: v22types.Node{
+			Filesystem: filesystem,
+			Path: path,
+		},
+		FileEmbedded1: v22types.FileEmbedded1{
+			Contents: v22types.FileContents{
+				Source: dataurl.EncodeBytes([]byte(contents)),
+			},
+		},
+	})
+	return nil
+}
+
+func (c *Conf) maskSystemdUnitV1(name string) {
+	c.ignitionV1.Systemd.Units = append(c.ignitionV1.Systemd.Units, v1types.SystemdUnit{
+		Name: v1types.SystemdUnitName(name),
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV2(name string) {
+	c.ignitionV2.Systemd.Units = append(c.ignitionV2.Systemd.Units, v2types.SystemdUnit{
+		Name: v2types.SystemdUnitName(name),
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV21(name string) {
+	c.ignitionV21.Systemd.Units = append(c.ignitionV21.Systemd.Units, v21types.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitV22(name string) {
+	c.ignitionV22.Systemd.Units = append(c.ignitionV22.Systemd.Units, v22types.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) maskSystemdUnitCloudConfig(name string) {
+	c.cloudconfig.CoreOS.Units = append(c.cloudconfig.CoreOS.Units, cci.Unit{
+		Name: name,
+		Mask: true,
+	})
+}
+
+func (c *Conf) MaskSystemdUnit(name string) {
+	if c.ignitionV1 != nil {
+		c.maskSystemdUnitV1(name)
+	} else if c.ignitionV2 != nil {
+		c.maskSystemdUnitV2(name)
+	} else if c.ignitionV21 != nil {
+		c.maskSystemdUnitV21(name)
+	} else if c.ignitionV22 != nil {
+		c.maskSystemdUnitV22(name)
+	} else if c.cloudconfig != nil {
+		c.maskSystemdUnitCloudConfig(name)
+	}
+}
+
 func (c *Conf) addSystemdUnitV1(name, contents string, enable bool) {
 	c.ignitionV1.Systemd.Units = append(c.ignitionV1.Systemd.Units, v1types.SystemdUnit{
 		Name:     v1types.SystemdUnitName(name),
