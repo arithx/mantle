@@ -49,6 +49,8 @@ func init() {
 		Run:         NFSv3,
 		ClusterSize: 0,
 		Name:        "linux.nfs.v3",
+		// RHCOS doesn't have v3 support
+		ExcludeDistros: []string{"rhcos"},
 	})
 	register.Register(&register.Test{
 		Run:         NFSv4,
@@ -72,6 +74,11 @@ func testNFS(c cluster.TestCluster, nfsversion int) {
 
 	c.Logf("Test file %q created on server.", tmp)
 
+	mountLocation := "/tmp"
+	if c.RuntimeConf().Distro == "rhcos" {
+		mountLocation = "/"
+	}
+
 	c2 := conf.ContainerLinuxConfig(fmt.Sprintf(`storage:
   files:
     - filesystem: "root"
@@ -81,7 +88,7 @@ func testNFS(c cluster.TestCluster, nfsversion int) {
       mode: 0644
 systemd:
   units:
-    - name: "mnt.mount"
+    - name: "var-mnt.mount"
       enabled: true
       contents: |-
         [Unit]
@@ -92,13 +99,13 @@ systemd:
         Requires=rpc-statd.service
 
         [Mount]
-        What=%s:/tmp
-        Where=/mnt
+        What=%s:%s
+        Where=/var/mnt
         Type=nfs
         Options=defaults,noexec,nfsvers=%d
 
         [Install]
-        WantedBy=multi-user.target`, m1.PrivateIP(), nfsversion))
+        WantedBy=multi-user.target`, m1.PrivateIP(), mountLocation, nfsversion))
 
 	m2, err := c.NewMachine(c2)
 	if err != nil {
@@ -110,9 +117,9 @@ systemd:
 	c.Log("NFS client booted.")
 
 	checkmount := func() error {
-		status, err := c.SSH(m2, "systemctl is-active mnt.mount")
+		status, err := c.SSH(m2, "systemctl is-active var-mnt.mount")
 		if err != nil || string(status) != "active" {
-			return fmt.Errorf("mnt.mount status is %q: %v", status, err)
+			return fmt.Errorf("var-mnt.mount status is %q: %v", status, err)
 		}
 
 		c.Log("Got NFS mount.")
@@ -123,7 +130,7 @@ systemd:
 		c.Fatal(err)
 	}
 
-	c.MustSSH(m2, fmt.Sprintf("stat /mnt/%s", path.Base(string(tmp))))
+	c.MustSSH(m2, fmt.Sprintf("stat /var/mnt/%s", path.Base(string(tmp))))
 }
 
 // Test that the kernel NFS server and client work within CoreOS.
