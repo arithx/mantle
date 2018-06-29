@@ -145,6 +145,7 @@ systemd:
         Where=/var/lib/docker
         Type=btrfs
         Options=loop,discard`),
+		Distros: []string{"cl"},
 	})
 
 	register.Register(&register.Test{

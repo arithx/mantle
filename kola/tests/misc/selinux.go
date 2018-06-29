@@ -56,6 +56,9 @@ func SelinuxEnforce(c cluster.TestCluster) {
 		c.Fatalf("failed to reboot machine: %v", err)
 	}
 
+	o := c.MustSSH(m, "which getenforce")
+	c.Logf(string(o))
+
 	output := c.MustSSH(m, "getenforce")
 
 	if string(output) != "Enforcing" {

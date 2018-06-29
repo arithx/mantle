@@ -41,27 +41,30 @@ func init() {
 	}`)
 
 	register.Register(&register.Test{
-		Name:        "coreos.metadata.aws",
-		Run:         verifyAWS,
-		ClusterSize: 1,
-		Platforms:   []string{"aws"},
-		UserData:    enableMetadataService,
+		Name:           "coreos.metadata.aws",
+		Run:            verifyAWS,
+		ClusterSize:    1,
+		Platforms:      []string{"aws"},
+		UserData:       enableMetadataService,
+		ExcludeDistros: []string{"rhcos"},
 	})
 
 	register.Register(&register.Test{
-		Name:        "coreos.metadata.azure",
-		Run:         verifyAzure,
-		ClusterSize: 1,
-		Platforms:   []string{"azure"},
-		UserData:    enableMetadataService,
+		Name:           "coreos.metadata.azure",
+		Run:            verifyAzure,
+		ClusterSize:    1,
+		Platforms:      []string{"azure"},
+		UserData:       enableMetadataService,
+		ExcludeDistros: []string{"rhcos"},
 	})
 
 	register.Register(&register.Test{
-		Name:        "coreos.metadata.packet",
-		Run:         verifyPacket,
-		ClusterSize: 1,
-		Platforms:   []string{"packet"},
-		UserData:    enableMetadataService,
+		Name:           "coreos.metadata.packet",
+		Run:            verifyPacket,
+		ClusterSize:    1,
+		Platforms:      []string{"packet"},
+		UserData:       enableMetadataService,
+		ExcludeDistros: []string{"rhcos"},
 	})
 }
 
