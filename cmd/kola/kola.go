@@ -148,6 +148,11 @@ func writeProps() error {
 		Image       string `json:"image"`
 		MachineType string `json:"type"`
 	}
+	type OpenStack struct {
+		Region string `json:"region"`
+		Image  string `json:"iamge"`
+		Flavor string `json:"flavor"`
+	}
 	type Packet struct {
 		Facility              string `json:"facility"`
 		Plan                  string `json:"plan"`
@@ -158,16 +163,17 @@ func writeProps() error {
 		Image string `json:"image"`
 	}
 	return enc.Encode(&struct {
-		Cmdline  []string `json:"cmdline"`
-		Platform string   `json:"platform"`
-		Distro   string   `json:"distro"`
-		Board    string   `json:"board"`
-		AWS      AWS      `json:"aws"`
-		DO       DO       `json:"do"`
-		ESX      ESX      `json:"esx"`
-		GCE      GCE      `json:"gce"`
-		Packet   Packet   `json:"packet"`
-		QEMU     QEMU     `json:"qemu"`
+		Cmdline   []string  `json:"cmdline"`
+		Platform  string    `json:"platform"`
+		Distro    string    `json:"distro"`
+		Board     string    `json:"board"`
+		AWS       AWS       `json:"aws"`
+		DO        DO        `json:"do"`
+		ESX       ESX       `json:"esx"`
+		GCE       GCE       `json:"gce"`
+		OpenStack OpenStack `json:"openstack"`
+		Packet    Packet    `json:"packet"`
+		QEMU      QEMU      `json:"qemu"`
 	}{
 		Cmdline:  os.Args,
 		Platform: kolaPlatform,
@@ -190,6 +196,11 @@ func writeProps() error {
 		GCE: GCE{
 			Image:       kola.GCEOptions.Image,
 			MachineType: kola.GCEOptions.MachineType,
+		},
+		OpenStack: OpenStack{
+			Region: kola.OpenStackOptions.Region,
+			Image:  kola.OpenStackOptions.Image,
+			Flavor: kola.OpenStackOptions.Flavor,
 		},
 		Packet: Packet{
 			Facility: kola.PacketOptions.Facility,

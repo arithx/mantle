@@ -1,5 +1,7 @@
 package: github.com/coreos/mantle
 import:
+- package: github.com/gophercloud/gophercloud
+  version: 185230dfbd12fc178f22e1e2a5c4cf0e3ef5ae45
 - package: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
 - package: github.com/Azure/azure-sdk-for-go
