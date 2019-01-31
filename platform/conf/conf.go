@@ -616,6 +616,120 @@ func (c *Conf) CopyKeys(keys []*agent.Key) {
 	}
 }
 
+// HACK: Adds list of groups to core user
+func (c *Conf) AddGroups(groups []string) {
+	if c.ignitionV1 != nil {
+		c.addGroupsIgnitionV1(groups)
+	} else if c.ignitionV2 != nil {
+		c.addGroupsIgnitionV2(groups)
+	} else if c.ignitionV21 != nil {
+		c.addGroupsIgnitionV21(groups)
+	} else if c.ignitionV22 != nil {
+		c.addGroupsIgnitionV22(groups)
+	} else if c.ignitionV23 != nil {
+		c.addGroupsIgnitionV23(groups)
+	}
+}
+
+func (c *Conf) addGroupsIgnitionV1(groups []string) {
+	for i := range c.ignitionV1.Passwd.Users {
+		user := &c.ignitionV1.Passwd.Users[i]
+		if user.Name == "core" {
+			if user.Create != nil {
+				user.Create.Groups = append(user.Create.Groups, groups...)
+				return
+			} else {
+				user.Create = &v1types.UserCreate{
+					Groups: groups,
+				}
+			}
+		}
+	}
+	c.ignitionV1.Passwd.Users = append(c.ignitionV1.Passwd.Users, v1types.User{
+		Name: "core",
+		Create: &v1types.UserCreate{
+			Groups: groups,
+		},
+	})
+}
+
+func (c *Conf) addGroupsIgnitionV2(groups []string) {
+	for i := range c.ignitionV2.Passwd.Users {
+		user := &c.ignitionV2.Passwd.Users[i]
+		if user.Name == "core" {
+			if user.Create != nil {
+				user.Create.Groups = append(user.Create.Groups, groups...)
+				return
+			} else {
+				user.Create = &v2types.UserCreate{
+					Groups: groups,
+				}
+				return
+			}
+		}
+	}
+	c.ignitionV2.Passwd.Users = append(c.ignitionV2.Passwd.Users, v2types.User{
+		Name: "core",
+		Create: &v2types.UserCreate{
+			Groups: groups,
+		},
+	})
+}
+
+func (c *Conf) addGroupsIgnitionV21(groups []string) {
+	var groupObjs []v21types.PasswdUserGroup
+	for _, group := range groups {
+		groupObjs = append(groupObjs, v21types.PasswdUserGroup(group))
+	}
+	for i := range c.ignitionV21.Passwd.Users {
+		user := &c.ignitionV21.Passwd.Users[i]
+		if user.Name == "core" {
+			user.Groups = append(user.Groups, groupObjs...)
+			return
+		}
+	}
+	c.ignitionV21.Passwd.Users = append(c.ignitionV21.Passwd.Users, v21types.PasswdUser{
+		Name:   "core",
+		Groups: groupObjs,
+	})
+}
+
+func (c *Conf) addGroupsIgnitionV22(groups []string) {
+	var groupObjs []v22types.Group
+	for _, group := range groups {
+		groupObjs = append(groupObjs, v22types.Group(group))
+	}
+	for i := range c.ignitionV22.Passwd.Users {
+		user := &c.ignitionV22.Passwd.Users[i]
+		if user.Name == "core" {
+			user.Groups = append(user.Groups, groupObjs...)
+			return
+		}
+	}
+	c.ignitionV22.Passwd.Users = append(c.ignitionV22.Passwd.Users, v22types.PasswdUser{
+		Name:   "core",
+		Groups: groupObjs,
+	})
+}
+
+func (c *Conf) addGroupsIgnitionV23(groups []string) {
+	var groupObjs []v23types.Group
+	for _, group := range groups {
+		groupObjs = append(groupObjs, v23types.Group(group))
+	}
+	for i := range c.ignitionV23.Passwd.Users {
+		user := &c.ignitionV23.Passwd.Users[i]
+		if user.Name == "core" {
+			user.Groups = append(user.Groups, groupObjs...)
+			return
+		}
+	}
+	c.ignitionV23.Passwd.Users = append(c.ignitionV23.Passwd.Users, v23types.PasswdUser{
+		Name:   "core",
+		Groups: groupObjs,
+	})
+}
+
 func keysToStrings(keys []*agent.Key) (keyStrs []string) {
 	for _, key := range keys {
 		keyStrs = append(keyStrs, key.String())

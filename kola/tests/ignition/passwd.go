@@ -175,7 +175,7 @@ func init() {
 		               ]
 		             }
 		           }`),
-		Distros: []string{"rhcos", "fcos"},
+		Distros: []string{"rhcos"},
 	})
 	register.Register(&register.Test{
 		Name:        "rhcos.ignition.v2.users",
@@ -203,7 +203,7 @@ func init() {
 		               ]
 		             }
 		           }`),
-		Distros: []string{"rhcos", "fcos"},
+		Distros: []string{"rhcos"},
 	})
 }
 

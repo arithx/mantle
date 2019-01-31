@@ -72,6 +72,7 @@ func (qc *Cluster) NewMachineWithOptions(userdata *conf.UserData, options Machin
 	}
 	qc.mu.Unlock()
 
+	conf.AddGroups([]string{"wheel", "sudo", "adm", "systemd-journal"})
 	var confPath string
 	if conf.IsIgnition() {
 		confPath = filepath.Join(dir, "ignition.json")
