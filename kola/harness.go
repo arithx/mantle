@@ -46,6 +46,7 @@ import (
 	"github.com/coreos/mantle/platform/machine/openstack"
 	"github.com/coreos/mantle/platform/machine/packet"
 	"github.com/coreos/mantle/platform/machine/qemu"
+	"github.com/coreos/mantle/platform/machine/unprivqemu"
 	"github.com/coreos/mantle/system"
 )
 
@@ -169,14 +170,23 @@ func NewFlight(pltfrm string) (flight platform.Flight, err error) {
 		flight, err = packet.NewFlight(&PacketOptions)
 	case "qemu":
 		flight, err = qemu.NewFlight(&QEMUOptions)
+	case "unprivileged-qemu":
+		flight, err = unprivqemu.NewFlight(&QEMUOptions)
 	default:
 		err = fmt.Errorf("invalid platform %q", pltfrm)
 	}
 	return
 }
 
-func filterTests(tests map[string]*register.Test, pattern, platform string, version semver.Version) (map[string]*register.Test, error) {
+func filterTests(tests map[string]*register.Test, pattern, pltfrm string, version semver.Version) (map[string]*register.Test, error) {
 	r := make(map[string]*register.Test)
+
+	checkPlatforms := []string{pltfrm}
+
+	// unprivileged-qemu has the same restrictions as QEMU but might also want additional restrictions due to the lack of a Local cluster
+	if pltfrm == "unprivileged-qemu" {
+		checkPlatforms = append(checkPlatforms, "qemu")
+	}
 
 	for name, t := range tests {
 		match, err := filepath.Match(pattern, t.Name)
@@ -201,8 +211,8 @@ func filterTests(tests map[string]*register.Test, pattern, platform string, vers
 			return false
 		}
 
-		if existsIn(platform, register.PlatformsNoInternet) && t.HasFlag(register.RequiresInternetAccess) {
-			plog.Debugf("skipping test %s: Internet required but not supported by platform %s", t.Name, platform)
+		if existsIn(pltfrm, register.PlatformsNoInternet) && t.HasFlag(register.RequiresInternetAccess) {
+			plog.Debugf("skipping test %s: Internet required but not supported by platform %s", t.Name, pltfrm)
 			continue
 		}
 
@@ -224,15 +234,23 @@ func filterTests(tests map[string]*register.Test, pattern, platform string, vers
 			return allowed
 		}
 
-		if !isAllowed(platform, t.Platforms, t.ExcludePlatforms) {
+		allowed := true
+		for _, platform := range checkPlatforms {
+			if !isAllowed(platform, t.Platforms, t.ExcludePlatforms) {
+				allowed = false
+				break
+			}
+
+			if !isAllowed(architecture(platform), t.Architectures, []string{}) {
+				allowed = false
+				break
+			}
+		}
+		if !allowed {
 			continue
 		}
 
 		if !isAllowed(Options.Distribution, t.Distros, t.ExcludeDistros) {
-			continue
-		}
-
-		if !isAllowed(architecture(platform), t.Architectures, []string{}) {
 			continue
 		}
 

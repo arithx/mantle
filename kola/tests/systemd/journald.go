@@ -59,6 +59,9 @@ func init() {
 		ClusterSize: 0,
 		Name:        "systemd.journal.remote",
 		Distros:     []string{"cl"},
+
+		// unprivileged-qemu machines cannot communicate
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 }
 

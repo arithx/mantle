@@ -59,6 +59,9 @@ func init() {
 		ClusterSize: 2,
 		Name:        "docker.network",
 		Distros:     []string{"cl"},
+
+		// unprivileged-qemu machines cannot communicate
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 	register.Register(&register.Test{
 		Run:         dockerOldClient,
@@ -96,6 +99,9 @@ storage:
 passwd:
   users:
   - name: dockremap`),
+
+		// unprivileged-qemu machines cannot communicate
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 
 	// This test covers all functionality that should be quick to run and can be
@@ -206,6 +212,12 @@ systemd:
   units:
    - name: docker.service
      enable: true`),
+
+		// <link to mantle bug>
+		// On the unprivileged-qemu platform the DHCP provides no data, pre-systemd 241 the DHCP server sending
+		// no routes to the link to spin in the configuring state. docker.service pulls in the network-online
+		// target which causes the basic machine checks to fail
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 }
 

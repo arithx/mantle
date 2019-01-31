@@ -22,6 +22,7 @@ import (
 	"github.com/coreos/mantle/platform"
 	"github.com/coreos/mantle/platform/conf"
 	"github.com/coreos/mantle/platform/machine/qemu"
+	"github.com/coreos/mantle/platform/machine/unprivqemu"
 )
 
 var (
@@ -105,14 +106,30 @@ systemd:
 }
 
 func RootOnRaid(c cluster.TestCluster) {
-	options := qemu.MachineOptions{
-		AdditionalDisks: []qemu.Disk{
-			{Size: "520M", DeviceOpts: []string{"serial=secondary"}},
-		},
-	}
-	m, err := c.Cluster.(*qemu.Cluster).NewMachineWithOptions(raidRootUserData, options)
-	if err != nil {
-		c.Fatal(err)
+	var m platform.Machine
+	var err error
+	if qc, ok := c.Cluster.(*qemu.Cluster); ok {
+		options := qemu.MachineOptions{
+			AdditionalDisks: []qemu.Disk{
+				{Size: "520M", DeviceOpts: []string{"serial=secondary"}},
+			},
+		}
+		m, err = qc.NewMachineWithOptions(raidRootUserData, options)
+		if err != nil {
+			c.Fatal(err)
+		}
+	} else if uc, ok := c.Cluster.(*unprivqemu.Cluster); ok {
+		options := unprivqemu.MachineOptions{
+			AdditionalDisks: []unprivqemu.Disk{
+				{Size: "520M", DeviceOpts: []string{"serial=secondary"}},
+			},
+		}
+		m, err = uc.NewMachineWithOptions(raidRootUserData, options)
+		if err != nil {
+			c.Fatal(err)
+		}
+	} else {
+		c.Fatal("unknown cluster type")
 	}
 
 	checkIfMountpointIsRaid(c, m, "/")

@@ -293,3 +293,6 @@ for more information about the `.boto` file.
 
 ### qemu
 `qemu` is run locally and needs no credentials, but does need to be run as root.
+
+### unprivileged-qemu
+`unprivileged-qemu` is run locally and needs no credentials. It has a restricted set of functionality from the `qemu` platform.

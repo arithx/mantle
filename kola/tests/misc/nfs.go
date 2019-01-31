@@ -50,11 +50,17 @@ func init() {
 		ClusterSize: 0,
 		Name:        "linux.nfs.v3",
 		Distros:     []string{"cl", "fcos"},
+
+		// unprivileged-qemu machines cannot communicate
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 	register.Register(&register.Test{
 		Run:         NFSv4,
 		ClusterSize: 0,
 		Name:        "linux.nfs.v4",
+
+		// unprivileged-qemu machines cannot communicate
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 	})
 }
 

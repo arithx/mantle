@@ -75,7 +75,7 @@ func init() {
 			"Serve": Serve,
 		},
 		// https://github.com/coreos/bugs/issues/2205
-		ExcludePlatforms: []string{"do"},
+		ExcludePlatforms: []string{"do", "unprivileged-qemu"},
 		Distros:          []string{"cl", "rhcos", "fcos"},
 	})
 	register.Register(&register.Test{
