@@ -30,6 +30,7 @@ func init() {
 		ClusterSize: 0,
 		Name:        "linux.ntp",
 		Platforms:   []string{"qemu"},
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 		Distros:     []string{"cl"},
 	})
 }

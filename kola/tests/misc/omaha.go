@@ -32,6 +32,7 @@ func init() {
 		ClusterSize: 0,
 		Name:        "cl.omaha.ping",
 		Platforms:   []string{"qemu"},
+		ExcludePlatforms: []string{"unprivileged-qemu"},
 		Distros:     []string{"cl"},
 	})
 }

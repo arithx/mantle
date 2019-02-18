@@ -216,8 +216,8 @@ func filterTests(tests map[string]*register.Test, pattern, pltfrm string, versio
 			continue
 		}
 
-		isAllowed := func(item string, include, exclude []string) bool {
-			allowed := true
+		isAllowed := func(item string, include, exclude []string) (bool, bool) {
+			allowed, excluded := true, false
 			for _, i := range include {
 				if i == item {
 					allowed = true
@@ -229,28 +229,28 @@ func filterTests(tests map[string]*register.Test, pattern, pltfrm string, versio
 			for _, i := range exclude {
 				if i == item {
 					allowed = false
+					excluded = true
 				}
 			}
-			return allowed
+			return allowed, excluded
 		}
 
-		allowed := true
+		isExcluded := false
+		allowed := false
 		for _, platform := range checkPlatforms {
-			if !isAllowed(platform, t.Platforms, t.ExcludePlatforms) {
-				allowed = false
+			allowedPlatform, excluded := isAllowed(platform, t.Platforms, t.ExcludePlatforms)
+			if excluded {
+				isExcluded = true
 				break
 			}
-
-			if !isAllowed(architecture(platform), t.Architectures, []string{}) {
-				allowed = false
-				break
-			}
+			allowedArchitecture, _ := isAllowed(architecture(platform), t.Architectures, []string{})
+			allowed = allowed || (allowedPlatform && allowedArchitecture)
 		}
-		if !allowed {
+		if isExcluded || !allowed {
 			continue
 		}
 
-		if !isAllowed(Options.Distribution, t.Distros, t.ExcludeDistros) {
+		if allowed, excluded := isAllowed(Options.Distribution, t.Distros, t.ExcludeDistros); !allowed || excluded {
 			continue
 		}
 

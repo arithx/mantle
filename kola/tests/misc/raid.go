@@ -108,7 +108,7 @@ systemd:
 func RootOnRaid(c cluster.TestCluster) {
 	var m platform.Machine
 	var err error
-	if qc, ok := c.Cluster.(*qemu.Cluster); ok {
+	/*if qc, ok := c.Cluster.(*qemu.Cluster); ok {
 		options := qemu.MachineOptions{
 			AdditionalDisks: []qemu.Disk{
 				{Size: "520M", DeviceOpts: []string{"serial=secondary"}},
@@ -130,6 +130,21 @@ func RootOnRaid(c cluster.TestCluster) {
 		}
 	} else {
 		c.Fatal("unknown cluster type")
+	}*/
+	options := platform.MachineOptions{
+		AdditionalDisks: []platform.Disk{
+			{Size: "520M", DeviceOpts: []string{"serial=secondary"}},
+		},
+	}
+	if qc, ok := c.Cluster.(*qemu.Cluster); ok {
+		m, err = qc.NewMachineWithOptions(raidRootUserData, options)
+	} else if uc, ok2 := c.Cluster.(*unprivqemu.Cluster); ok2 {
+		m, err = uc.NewMachineWithOptions(raidRootUserData, options)
+	} else {
+		c.Fatal("unknown cluster type")
+	}
+	if err != nil {
+		c.Fatal(err)
 	}
 
 	checkIfMountpointIsRaid(c, m, "/")
