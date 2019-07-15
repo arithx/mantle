@@ -38,9 +38,11 @@ var (
 			SubscriptionName:     "BizSpark",
 			AdditionalContainers: []string{"pre-publish"},
 		},
-		azureEnvironmentSpec{
-			SubscriptionName: "BlackForest",
-		},
+		/*
+			azureEnvironmentSpec{
+				SubscriptionName: "BlackForest",
+			},
+		*/
 		azureEnvironmentSpec{
 			SubscriptionName: "Mooncake",
 		},
