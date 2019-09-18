@@ -68,6 +68,7 @@ func init() {
 	ssv(&kola.BlacklistedTests, "blacklist-test", []string{}, "List of tests to blacklist")
 	// rhcos-specific options
 	sv(&kola.Options.OSContainer, "oscontainer", "", "oscontainer image pullspec for pivot (RHCOS only)")
+	bv(&kola.ExitZeroOnTestFailure, "exit-zero-on-test-failure", false, "Do not exit with an error code if only tests fail")
 
 	// aws-specific options
 	defaultRegion := os.Getenv("AWS_REGION")

@@ -78,6 +78,8 @@ var (
 
 	BlacklistedTests []string // tests which are blacklisted
 
+	ExitZeroOnTestFailure bool // don't return an error in RunTests if only tests have failed
+
 	consoleChecks = []struct {
 		desc     string
 		match    *regexp.Regexp
@@ -400,6 +402,14 @@ func RunTests(pattern, pltfrm, outputDir string) error {
 		fmt.Printf("FAIL, output in %v\n", outputDir)
 	} else {
 		fmt.Printf("PASS, output in %v\n", outputDir)
+	}
+
+	// rather than returning the error when the suite contains test failures and
+	// ExitZeroOnTestFailure is true, print them out and return nil to allow
+	// the runner to exit 0
+	if ExitZeroOnTestFailure && err == harness.SuiteFailed {
+		fmt.Printf("%v\n", err)
+		return nil
 	}
 
 	return err
